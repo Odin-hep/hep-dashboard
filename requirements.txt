@@ -1,0 +1,11 @@
+numpy
+pandas
+matplotlib
+uproot
+xgboost
+scikit-learn
+tensorflow
+joblib
+dash
+plotly
+gunicorn
