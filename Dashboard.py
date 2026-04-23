@@ -37,7 +37,7 @@ def cargar_datos_produccion():
 
 #masters_test = cargar_datos_produccion()
 # Cargar masters_test
-with open("masters_test.pkl", "rb") as f:
+with open("masters_test_light.pkl", "rb") as f:
     masters_test = pickle.load(f)
 
 print("masters cargados correctamente")
