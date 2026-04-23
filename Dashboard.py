@@ -1,3 +1,4 @@
+import pickle
 import numpy as np
 import pandas as pd
 import ast
@@ -5,6 +6,7 @@ import dash
 from dash import dcc, html, Input, Output
 import plotly.graph_objects as go
 import os
+
 
 # =========================================================
 # 1. CARGA DE DATOS PREPROCESADOS (Ligero y Rápido)
