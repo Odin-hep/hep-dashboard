@@ -274,10 +274,7 @@ def update_dashboard(particle, selected_model, pt_range, n_bins, custom_bins_inp
 server = app.server  # IMPORTANTE para deploy
 
 if __name__ == '__main__':
-    #app.run(debug=False, host='0.0.0.0', port=8050)
-    #app.run(debug=True, host='127.0.0.1', port=8050)
-    app.run(
-            debug=not is_prod, 
-            host='0.0.0.0' if is_prod else '127.0.0.1', 
-            port=port
-        )
+    # Render asigna un puerto en la variable de entorno PORT
+    port = int(os.environ.get("PORT", 8050))
+    # En Render, host debe ser 0.0.0.0
+    app.run(host='0.0.0.0', port=port, debug=False)
