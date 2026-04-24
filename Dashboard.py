@@ -189,23 +189,29 @@ app.layout = html.Div([
 # 4. FUNCIONES GRÁFICAS Y CALLBACKS
 # =========================================================
 
-def add_step_trace(fig, name, df_sub, y_col, line_dash='solid', color=None):
-    """Convierte el DataFrame en un escalón tipo ROOT (TH1)."""
+def add_step_trace(fig, name, df_sub, y_col, bin_edges, line_dash='solid', color=None):
+    """Construye las líneas horizontales y verticales exactas del bin (estilo ROOT)."""
     if df_sub.empty: return
-    # Necesitamos el ancho del bin para el trazo correcto
+    
     x_vals = []
     y_vals = []
+    
     for _, row in df_sub.iterrows():
-        center = row['pT_center']
-        # Usamos un ancho simulado basado en el centro si no tenemos el left/right explícito
-        # Como optimización, asumo que pT_bin_idx te puede dar los bordes exactos,
-        # pero para Plotly line_shape='hv' requiere los puntos x e y correlativos.
-        x_vals.append(center) 
+        # Obtenemos el índice del bin para buscar sus bordes
+        idx = int(row['pT_bin_idx'])
+        
+        # Punto 1: Borde izquierdo del bin
+        x_vals.append(bin_edges[idx])
         y_vals.append(row[y_col])
         
+        # Punto 2: Borde derecho del bin
+        x_vals.append(bin_edges[idx + 1])
+        y_vals.append(row[y_col])
+        
+    # Agregamos el trazo. Quitamos 'markers' y 'line_shape' porque ya formamos el escalón manualmente.
     fig.add_trace(go.Scatter(
-        x=x_vals, y=y_vals, mode='lines+markers', line_shape='hv', 
-        name=name, line=dict(dash=line_dash, width=2, color=color), connectgaps=True
+        x=x_vals, y=y_vals, mode='lines', 
+        name=name, line=dict(dash=line_dash, width=2, color=color)
     ))
 
 @app.callback(
@@ -247,21 +253,21 @@ def update_dashboard(particle, selected_model, pt_range, n_bins, custom_bins_inp
         if tab == 'Efficiency':
             for mod in df_ml['modelo'].unique():
                 df_sub = df_ml[df_ml['modelo'] == mod]
-                add_step_trace(fig, name=mod, df_sub=df_sub, y_col='recall')
+                add_step_trace(fig, name=mod, df_sub=df_sub, y_col='recall', bin_edges=new_edges)
             title_y = "Eficiencia (Recall)"
 
         elif tab == 'Purity':
             for mod in df_ml['modelo'].unique():
                 df_sub = df_ml[df_ml['modelo'] == mod]
-                add_step_trace(fig, name=mod, df_sub=df_sub, y_col='precision')
+                add_step_trace(fig, name=mod, df_sub=df_sub, y_col='precision', bin_edges=new_edges)
             title_y = "Pureza (Precisión)"
 
         elif tab == 'Comparison':
             df_trad = compute_traditional_baseline(df_raw, df_ml, new_edges)
             if not df_trad.empty:
                 df_mod = df_trad[df_trad['modelo'] == selected_model]
-                add_step_trace(fig, f"{selected_model} (ML)", df_mod, 'precision', color='blue')
-                add_step_trace(fig, f"{selected_model} (Tradicional)", df_mod, 'precision_trad', line_dash='dash', color='red')
+                add_step_trace(fig, f"{selected_model} (ML)", df_mod, 'precision', bin_edges=new_edges, color='blue')
+                add_step_trace(fig, f"{selected_model} (Tradicional)", df_mod, 'precision_trad', bin_edges=new_edges, line_dash='dash', color='red')
             title_y = "Comparación de Pureza"
 
     fig.update_layout(
